@@ -24,12 +24,31 @@ class App extends Component {
     this.setState({ posts });
   };
 
-  handleUpdate = post => {
-    console.log("Update", post);
+  handleUpdate = async post => {
+    post.title = "UPDATED";
+    await axios.put(
+      "https://jsonplaceholder.typicode.com/posts" + "/" + post.id,
+      post
+    );
+    const posts = [...this.state.posts];
+    const index = posts.indexOf(post);
+    posts[index] = { ...post };
+    this.setState({ post });
+    console.log(post);
   };
 
   handleDelete = post => {
-    console.log("Delete", post);
+    const originalPosts = this.state.posts;
+    const posts = this.state.posts.filter(m => m.id !== post.id);
+    this.setState({ posts });
+    try {
+      axios.delete(
+        "https://jsonplaceholder.typicode.com/posts" + "/" + post.id
+      );
+    } catch (ex) {
+      alert("Something Went Wrong");
+      this.setState({ posts: originalPosts });
+    }
   };
 
   render() {
