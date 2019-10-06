@@ -1,5 +1,8 @@
 import React, { Component } from "react";
-import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import http from "./services/httpService";
+import config from "./config.json";
+import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
 class App extends Component {
@@ -8,28 +11,20 @@ class App extends Component {
   };
 
   async componentDidMount() {
-    const response = await axios.get(
-      "https://jsonplaceholder.typicode.com/posts"
-    );
+    const response = await http.get(config.apiEndpoint);
     this.setState({ posts: response.data });
   }
 
   handleAdd = async () => {
     const obj = { title: "a", body: "b" };
-    const { data: post } = await axios.post(
-      "https://jsonplaceholder.typicode.com/posts",
-      obj
-    );
+    const { data: post } = await http.post(config.apiEndpoint, obj);
     const posts = [post, ...this.state.posts];
     this.setState({ posts });
   };
 
   handleUpdate = async post => {
     post.title = "UPDATED";
-    await axios.put(
-      "https://jsonplaceholder.typicode.com/posts" + "/" + post.id,
-      post
-    );
+    await http.put(config.apiEndpoint + "/" + post.id, post);
     const posts = [...this.state.posts];
     const index = posts.indexOf(post);
     posts[index] = { ...post };
@@ -37,16 +32,15 @@ class App extends Component {
     console.log(post);
   };
 
-  handleDelete = post => {
+  handleDelete = async post => {
     const originalPosts = this.state.posts;
     const posts = this.state.posts.filter(m => m.id !== post.id);
     this.setState({ posts });
     try {
-      axios.delete(
-        "https://jsonplaceholder.typicode.com/posts" + "/" + post.id
-      );
+      await http.delete(config.apiEndpoint + "/" + post.id);
     } catch (ex) {
-      alert("Something Went Wrong");
+      if (ex.response && ex.response.status === 404)
+        toast.error("This post is already deleted");
       this.setState({ posts: originalPosts });
     }
   };
@@ -54,6 +48,7 @@ class App extends Component {
   render() {
     return (
       <React.Fragment>
+        <ToastContainer />
         <button className="btn btn-primary" onClick={this.handleAdd}>
           Add
         </button>
